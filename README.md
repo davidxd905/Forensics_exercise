@@ -67,16 +67,18 @@ with this supplied baseline; it does not establish authenticity or completeness.
 
 | Source | Data rows excluding header | Accepted unique | Duplicate | Rejected |
 | --- | --- | --- | --- | --- |
-| auth_log.csv | [fill] | [fill] | [fill] | [fill] |
-| file_log.csv | [fill] | [fill] | [fill] | [fill] |
+| auth_log.csv | [60] | [54] | [1] | [5] |
+| file_log.csv | [35] | [30] | [1] | [4] |
 
-- SHA-256 check outcome and what it establishes: [fill]
-- One rejected event ID and the exact rejection reason: [fill]
-- Number of flagged successful sessions: [fill]
+- SHA-256 check outcome and what it establishes: [Both CSV files passed the SHA-256 check.]
+- One rejected event ID and the exact rejection reason: [F901 – bytes must be nonnegative]
+- Number of flagged successful sessions: [3]
 
 | Success ID | Account | Session | Supporting failure IDs | Download IDs | Event count | Total bytes |
-| --- | --- | --- | --- | --- | --- | --- |
-| [one row per flagged success] | | | | | | |
+|---|---|---|---|---|---:|---:|
+| A005 | analyst01 | S-104 | A002, A003, A004 | F001, F002, F003 | 3 | 5509120 |
+| A018 | analyst02 | S-304 | A015, A016, A017 | F013 | 1 | 2048 |
+| A014 | backup_svc | S-204 | A011, A012, A013 | None | 0 | 0 |
 
 ## Manual evidence check -- do this without asking AI to count for you
 
@@ -86,21 +88,29 @@ original timestamps and UTC equivalents. Add rows as needed.
 
 | Source and event ID | Original timestamp | UTC timestamp | What the row records |
 | --- | --- | --- | --- |
-| [fill] | [fill] | [fill] | [fill] |
+| auth_log.csv – A002 | 08:58:00Z | 08:58:00 | Failed login |
+| auth_log.csv – A003 | 09:00:00Z | 09:00:00 | Failed login |
+| auth_log.csv – A004 | 10:01:00+01:00 | 09:01:00 | Failed login |
+| auth_log.csv – A005 | 09:03:00Z | 09:03:00 | Successful login |
+| file_log.csv – F001 | 09:05:00Z | 09:05:00 | Successful download, 5242880 bytes |
+| file_log.csv – F002 | 10:07:00+01:00 | 09:07:00 | Successful download, 262144 bytes |
+| file_log.csv – F003 | 09:13:00Z | 09:13:00 | Successful download, 4096 bytes |
 
-- Manual sum of download bytes, showing the addition: [fill]
-- A001 versus A002: which qualifies for the A005 window and why? [fill]
-- F003 versus F004: which qualifies for the A005 follow-up and why? [fill]
-- Why F005 is excluded even though the account matches: [fill]
-- One +01:00 timestamp and its equivalent UTC time: [fill]
-- One limitation of excluding malformed records: [fill]
+- Manual sum of download bytes, showing the addition: [5242880 + 262144 + 4096 = 5509120 bytes]
+- A001 versus A002: which qualifies for the A005 window and why? [A002 is included because it happened at 08:58, five minutes before A005. A001 happened one second too early and is therefore excluded.]
+- F003 versus F004: which qualifies for the A005 follow-up and why? [F003 is included because it happened exactly ten minutes after A005. F004 happened one second later and is therefore excluded.]
+- Why F005 is excluded even though the account matches: [F005 is excluded because it has a different session ID, even though the username matches.]
+- One +01:00 timestamp and its equivalent UTC time: [fF002: 10:07:00 +01:00 is 09:07:00 UTC.ill]
+- One limitation of excluding malformed records: [Some relevant events might be missing because malformed records are excluded from the analysis.]
 
 ## Checks actually run
 
 Command, date and actual final result (paste output, including failures if any):
 
 ```text
-[fill]
+[py check_solution.py LoginChecks – 9 tests passed.
+py check_solution.py DownloadChecks – 7 tests passed.
+py check_solution.py – 21 tests passed.]
 ```
 
 All 21 supplied checks should pass. Passing these checks is limited validation
